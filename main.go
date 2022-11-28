@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"errors"
+	"flag"
 	"fmt"
 	"math"
 	"os"
@@ -11,7 +12,14 @@ import (
 	"strings"
 )
 
+type sFlags struct {
+	mean, median, mode, sd bool
+}
+
 func calculateStandardDeviation(sequence []int, mean float64) float64 {
+	if len(sequence) < 2 {
+		return 0
+	}
 	var quadraticSum float64
 	for _, number := range sequence {
 		quadraticSum += math.Pow(float64(number)-mean, 2)
@@ -50,24 +58,49 @@ func calculateMedian(sequence []int) float64 {
 	var median float64
 	length := len(sequence)
 	if length%2 == 0 {
-		median = float64((sequence[length/2-1] + sequence[length/2]) / 2.0)
+		median = float64(sequence[length/2-1]+sequence[length/2]) / 2.0
 	} else {
 		median = float64(sequence[length/2])
 	}
 	return median
 }
 
-func handleSequence(sequence []int) {
+func handleSequence(sequence []int, flags *sFlags) {
 	sort.Slice(sequence, func(i, j int) bool {
 		return sequence[i] < sequence[j]
 	})
-	fmt.Printf("Mean: %.1f\n", calculateMean(sequence))
-	fmt.Printf("Median: %.1f\n", calculateMedian(sequence))
-	fmt.Printf("Mode: %d\n", calculateMode(sequence))
-	fmt.Printf("SD: %.2f\n", calculateStandardDeviation(sequence, calculateMean(sequence)))
+	if flags.mean {
+		fmt.Printf("Mean: %.2f\n", calculateMean(sequence))
+	}
+	if flags.median {
+		fmt.Printf("Median: %.2f\n", calculateMedian(sequence))
+	}
+	if flags.mode {
+		fmt.Printf("Mode: %d\n", calculateMode(sequence))
+	}
+	if flags.sd {
+		fmt.Printf("SD: %.2f\n", calculateStandardDeviation(sequence, calculateMean(sequence)))
+	}
+
+}
+
+func checkAllFlags(flags *sFlags) {
+	if !flags.mean && !flags.median && !flags.mode && !flags.sd {
+		flags.mean = true
+		flags.median = true
+		flags.mode = true
+		flags.sd = true
+	}
 }
 
 func main() {
+	flags := new(sFlags)
+	flag.BoolVar(&flags.mean, "mean", false, "show mean")
+	flag.BoolVar(&flags.median, "median", false, "show median")
+	flag.BoolVar(&flags.mode, "mode", false, "show mode")
+	flag.BoolVar(&flags.sd, "sd", false, "show standard deviation")
+	flag.Parse()
+	checkAllFlags(flags)
 	for {
 		var _err error
 		sequence := []int{}
@@ -81,7 +114,7 @@ func main() {
 		for _, integer := range splittedInput {
 			number, err := strconv.Atoi(integer)
 			_err = err
-			if number <= 10000 && number >= -10000 && _err == nil {
+			if number <= 100000 && number >= -100000 && _err == nil {
 				sequence = append(sequence, number)
 			} else {
 				if err == nil {
@@ -96,6 +129,6 @@ func main() {
 		if _err != nil {
 			continue
 		}
-		handleSequence(sequence)
+		handleSequence(sequence, flags)
 	}
 }

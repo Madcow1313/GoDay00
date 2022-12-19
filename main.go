@@ -101,11 +101,14 @@ func main() {
 	flag.BoolVar(&flags.sd, "sd", false, "show standard deviation")
 	flag.Parse()
 	checkAllFlags(flags)
+	fmt.Println("Enter sequence of integers")
+	sequence := []int{}
 	for {
 		var _err error
-		sequence := []int{}
-		fmt.Println("Enter sequence of integers")
 		input, err := bufio.NewReader(os.Stdin).ReadString('\n')
+		if len(input) == 0 {
+			break
+		}
 		if err != nil {
 			fmt.Println(err.Error())
 			continue
@@ -129,6 +132,6 @@ func main() {
 		if _err != nil {
 			continue
 		}
-		handleSequence(sequence, flags)
 	}
+	handleSequence(sequence, flags)
 }
